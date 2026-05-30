@@ -3,147 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Интерактивный сундук</title>
+<title>Калибровка сундука (По отдельности)</title>
 <style>
     body {
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: transparent; /* Полностью прозрачный фон */
-        overflow: hidden;
+        margin: 0; display: flex; justify-content: center; align-items: center;
+        height: 100vh; background-color: #f0f0f0; overflow: hidden; font-family: Arial, sans-serif;
     }
-
-    #game-container {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-        max-width: 800px;
-        container-type: inline-size; 
+    #game-container { 
+        position: relative; display: inline-block; width: 100%; max-width: 800px; container-type: inline-size; 
     }
-
-    .chest-img {
-        display: block;
-        width: 100%;
-        height: auto;
-    }
-
-    #chest-open {
-        display: none;
-    }
-
-    /* Твои идеальные координаты из редактора */
-    #lock-zone {
-        position: absolute;
-        top: 53.0%;
-        left: 19.0%;
-        width: 37.0%;
+    .chest-img { display: block; width: 100%; height: auto; }
+    
+    /* Теперь каждая ячейка независима */
+    .slot { 
+        position: absolute; 
+        display: flex; justify-content: center; align-items: center;
+        /* Временная высота для редактора */
         height: 14%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transform: perspective(600px) rotateY(16.0deg) rotateX(-17.0deg) rotateZ(4.5deg);
+        box-sizing: border-box;
     }
-
-    .slot {
-        position: relative;
-        width: 20%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
     .digit {
-        background-color: #1a0f08;
-        color: #dcb881;
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 4.5cqw;
-        text-align: center;
-        width: 70%;
-        padding: 12% 0;
-        border-radius: 4px;
-        box-shadow: inset 0px 3px 8px rgba(0,0,0,0.9), 0px 1px 1px rgba(255,255,255,0.1); 
-        user-select: none;
-        transition: transform 0.1s;
+        background-color: rgba(26, 15, 8, 0.8); /* Полупрозрачный фон для калибровки */
+        color: #dcb881; font-family: 'Courier New', monospace; font-weight: bold; font-size: 4.5cqw;
+        text-align: center; width: 100%; height: 80%; display: flex; justify-content: center; align-items: center; border-radius: 4px;
     }
 
-    /* Прозрачные кликабельные зоны поверх стрелочек */
-    .btn-invisible {
-        position: absolute;
-        width: 100%;
-        height: 60%; 
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-        outline: none;
+    /* Панель управления */
+    #editor-panel {
+        position: fixed; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.85); color: white;
+        padding: 15px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 300px;
     }
-
-    .btn-up { top: -60%; }
-    .btn-down { bottom: -60%; }
-
+    .tabs { display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .tab-btn { flex: 1; margin: 0 2px; padding: 8px 0; background: #333; cursor: pointer; border: none; color: white; border-radius: 3px;}
+    .tab-btn.active { background: #d4a359; color: black; font-weight: bold; }
+    
+    .control-group { margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .control-group span { font-size: 13px; width: 120px; }
+    button { background: #555; color: white; border: none; padding: 5px 12px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+    button:hover { background: #777; }
+    button:active { background: #d4a359; }
+    
+    #result-box { width: 100%; height: 100px; margin-top: 10px; display: none; font-size: 11px; font-family: monospace; }
+    #info-text { margin-top: 15px; color: #d4a359; font-size: 12px; text-align: center; }
 </style>
 </head>
 <body>
 
-<div id="game-container">
-    <img id="chest-closed" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1abdc8dae92dd5672057bd.png" alt="Закрытый сундук">
+<div id="editor-panel">
+    <h3>Настройка цифр</h3>
     
-    <img id="chest-open" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab745d830ade7d82a7a69.png" alt="Открытый сундук">
-
-    <div id="lock-zone">
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(0, 1)"></button>
-            <div class="digit" id="num-0">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(0, -1)"></button>
-        </div>
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(1, 1)"></button>
-            <div class="digit" id="num-1">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(1, -1)"></button>
-        </div>
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(2, 1)"></button>
-            <div class="digit" id="num-2">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(2, -1)"></button>
-        </div>
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(3, 1)"></button>
-            <div class="digit" id="num-3">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(3, -1)"></button>
-        </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="selectSlot(0)" id="btn-0">1</button>
+        <button class="tab-btn" onclick="selectSlot(1)" id="btn-1">2</button>
+        <button class="tab-btn" onclick="selectSlot(2)" id="btn-2">3</button>
+        <button class="tab-btn" onclick="selectSlot(3)" id="btn-3">4</button>
     </div>
+
+    <div class="control-group">
+        <span>Вверх / Вниз (Y)</span>
+        <div><button onclick="update('y', -0.5)">▲</button> <button onclick="update('y', 0.5)">▼</button></div>
+    </div>
+    <div class="control-group">
+        <span>Влево / Вправо (X)</span>
+        <div><button onclick="update('x', -0.5)">◀</button> <button onclick="update('x', 0.5)">▶</button></div>
+    </div>
+    <div class="control-group">
+        <span>Ширина блока</span>
+        <div><button onclick="update('w', -0.5)">-</button> <button onclick="update('w', 0.5)">+</button></div>
+    </div>
+    <hr style="border-color:#444;">
+    <div class="control-group">
+        <span>Наклон Вбок (Y)</span>
+        <div><button onclick="update('rotY', -1)">-</button> <button onclick="update('rotY', 1)">+</button></div>
+    </div>
+    <div class="control-group">
+        <span>Наклон Вниз (X)</span>
+        <div><button onclick="update('rotX', -1)">-</button> <button onclick="update('rotX', 1)">+</button></div>
+    </div>
+    <div class="control-group">
+        <span>Вращение (Z)</span>
+        <div><button onclick="update('rotZ', -0.5)">-</button> <button onclick="update('rotZ', 0.5)">+</button></div>
+    </div>
+    
+    <div id="info-text">Жми ENTER, когда настроишь ВСЕ цифры</div>
+    <textarea id="result-box" readonly></textarea>
+</div>
+
+<div id="game-container">
+    <img id="chest-closed" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1abdc8dae92dd5672057bd.png">
+    
+    <div id="slot-0" class="slot"><div class="digit">0</div></div>
+    <div id="slot-1" class="slot"><div class="digit">0</div></div>
+    <div id="slot-2" class="slot"><div class="digit">0</div></div>
+    <div id="slot-3" class="slot"><div class="digit">0</div></div>
 </div>
 
 <script>
-    let code = [0, 0, 0, 0];
-    const targetCode = [2, 4, 6, 7]; 
+    // Массив с настройками для каждой из 4 цифр (стартовые значения примерные)
+    let state = [
+        { y: 53, x: 20, w: 7, rotY: 16, rotX: -17, rotZ: 4.5 },
+        { y: 53, x: 28, w: 7, rotY: 16, rotX: -17, rotZ: 4.5 },
+        { y: 53, x: 36, w: 7, rotY: 16, rotX: -17, rotZ: 4.5 },
+        { y: 53, x: 44, w: 7, rotY: 16, rotX: -17, rotZ: 4.5 }
+    ];
 
-    function changeDigit(index, direction) {
-        code[index] += direction;
+    let currentSlot = 0;
 
-        if (code[index] > 9) code[index] = 0;
-        if (code[index] < 0) code[index] = 9;
-
-        const digitElement = document.getElementById('num-' + index);
-        digitElement.innerText = code[index];
-        
-        digitElement.style.transform = 'scale(0.85)';
-        setTimeout(() => digitElement.style.transform = 'scale(1)', 100);
-
-        checkCode();
+    function selectSlot(index) {
+        currentSlot = index;
+        // Обновляем кнопки
+        for(let i=0; i<4; i++) {
+            document.getElementById('btn-'+i).className = i === index ? 'tab-btn active' : 'tab-btn';
+        }
+        renderSlots();
     }
 
-    function checkCode() {
-        if (code.join('') === targetCode.join('')) {
-            document.getElementById('chest-closed').style.display = 'none';
-            document.getElementById('lock-zone').style.display = 'none';
-            document.getElementById('chest-open').style.display = 'block';
+    function renderSlots() {
+        for(let i=0; i<4; i++) {
+            const el = document.getElementById('slot-'+i);
+            const s = state[i];
+            el.style.top = s.y + '%';
+            el.style.left = s.x + '%';
+            el.style.width = s.w + '%';
+            el.style.transform = `perspective(600px) rotateY(${s.rotY}deg) rotateX(${s.rotX}deg) rotateZ(${s.rotZ}deg)`;
+            
+            // Подсветка активного слота
+            if (i === currentSlot) {
+                el.style.border = '2px dashed red';
+                el.style.zIndex = 10;
+            } else {
+                el.style.border = 'none';
+                el.style.zIndex = 1;
+            }
         }
     }
+
+    function update(prop, delta) {
+        state[currentSlot][prop] += delta;
+        renderSlots();
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            // Генерируем CSS код для всех слотов
+            let finalCSS = `/* ЗАМЕНИТЕ ВЕСЬ БЛОК <style> НА ЭТОТ КОД */\n\n`;
+            
+            for(let i=0; i<4; i++) {
+                const s = state[i];
+                finalCSS += `#slot-${i} {
+    position: absolute;
+    top: ${s.y.toFixed(1)}%;
+    left: ${s.x.toFixed(1)}%;
+    width: ${s.w.toFixed(1)}%;
+    height: 14%;
+    transform: perspective(600px) rotateY(${s.rotY.toFixed(1)}deg) rotateX(${s.rotX.toFixed(1)}deg) rotateZ(${s.rotZ.toFixed(1)}deg);
+}\n`;
+            }
+
+            const resultBox = document.getElementById('result-box');
+            resultBox.style.display = 'block';
+            resultBox.value = finalCSS;
+            resultBox.select(); // Автоматически выделяем текст для копирования
+            
+            document.getElementById('info-text').innerText = "Код готов! Скопируй его из поля ниже (Ctrl+C)";
+        }
+    });
+
+    // Первичная отрисовка
+    renderSlots();
 </script>
 
 </body>
