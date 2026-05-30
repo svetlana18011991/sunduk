@@ -7,103 +7,63 @@
 <style>
     body {
         margin: 0;
+        padding: 0;
         display: flex;
         justify-content: center;
         align-items: center;
+        width: 100vw;
         height: 100vh;
         background-color: transparent;
-        overflow: hidden;
+        overflow: hidden; /* Жестко отключаем полосы прокрутки */
     }
 
+    /* Контейнер теперь всегда вписывается в рамки фрейма Genially */
     #game-container {
         position: relative;
         display: inline-block;
-        width: 100%;
-        max-width: 800px;
-        container-type: inline-size; 
+        max-width: 100vw;
+        max-height: 100vh;
     }
 
     .chest-img {
         display: block;
-        width: 100%;
+        max-width: 100vw;
+        max-height: 100vh;
+        width: auto;
         height: auto;
+        object-fit: contain;
     }
 
     #chest-open {
         display: none;
+        cursor: pointer; /* При наведении курсор меняется на "пальчик" */
+        transition: transform 0.2s;
+    }
+    
+    /* Эффект легкого увеличения открытого сундука при наведении, чтобы показать, что он кликабелен */
+    #chest-open:hover {
+        transform: scale(1.02);
     }
 
-    /* --- Твои индивидуальные координаты для каждой цифры --- */
-    #slot-0 {
-        position: absolute;
-        top: 52.0%;
-        left: 20.5%;
-        width: 7.0%;
-        height: 14%;
-        transform: perspective(600px) rotateY(16.0deg) rotateX(-2.0deg) rotateZ(0.5deg);
-    }
-    #slot-1 {
-        position: absolute;
-        top: 53.5%;
-        left: 31.0%;
-        width: 7.0%;
-        height: 14%;
-        transform: perspective(600px) rotateY(1.0deg) rotateX(-6.0deg) rotateZ(1.5deg);
-    }
-    #slot-2 {
-        position: absolute;
-        top: 54.5%;
-        left: 41.0%;
-        width: 7.0%;
-        height: 14%;
-        transform: perspective(600px) rotateY(22.0deg) rotateX(0.0deg) rotateZ(1.0deg);
-    }
-    #slot-3 {
-        position: absolute;
-        top: 56.0%;
-        left: 51.5%;
-        width: 7.0%;
-        height: 14%;
-        transform: perspective(600px) rotateY(10.0deg) rotateX(-5.0deg) rotateZ(-0.5deg);
-    }
+    #slot-0 { position: absolute; top: 52.0%; left: 20.5%; width: 7.0%; height: 14%; transform: perspective(600px) rotateY(16.0deg) rotateX(-2.0deg) rotateZ(0.5deg); }
+    #slot-1 { position: absolute; top: 53.5%; left: 31.0%; width: 7.0%; height: 14%; transform: perspective(600px) rotateY(1.0deg) rotateX(-6.0deg) rotateZ(1.5deg); }
+    #slot-2 { position: absolute; top: 54.5%; left: 41.0%; width: 7.0%; height: 14%; transform: perspective(600px) rotateY(22.0deg) rotateX(0.0deg) rotateZ(1.0deg); }
+    #slot-3 { position: absolute; top: 56.0%; left: 51.5%; width: 7.0%; height: 14%; transform: perspective(600px) rotateY(10.0deg) rotateX(-5.0deg) rotateZ(-0.5deg); }
 
-    /* Настройки самих окошек с цифрами */
     .slot {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: flex; justify-content: center; align-items: center;
     }
 
     .digit {
-        background-color: #1a0f08;
-        color: #dcb881;
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 4.5cqw;
-        text-align: center;
-        width: 100%;
-        height: 80%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 4px;
+        background-color: #1a0f08; color: #dcb881; font-family: 'Courier New', monospace; font-weight: bold; font-size: 4.5cqw;
+        text-align: center; width: 100%; height: 80%; display: flex; justify-content: center; align-items: center; border-radius: 4px;
         box-shadow: inset 0px 3px 8px rgba(0,0,0,0.9), 0px 1px 1px rgba(255,255,255,0.1); 
-        user-select: none;
-        transition: transform 0.1s;
+        user-select: none; transition: transform 0.1s;
     }
 
-    /* Прозрачные зоны для клика поверх нарисованных стрелочек */
     .btn-invisible {
-        position: absolute;
-        width: 100%;
-        height: 60%; 
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-        outline: none;
+        position: absolute; width: 100%; height: 60%; background: transparent; border: none; cursor: pointer; z-index: 10; outline: none;
     }
-
     .btn-up { top: -60%; }
     .btn-down { bottom: -60%; }
 
@@ -113,47 +73,33 @@
 
 <div id="game-container">
     <img id="chest-closed" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1abdc8dae92dd5672057bd.png" alt="Закрытый сундук">
-    <img id="chest-open" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab745d830ade7d82a7a69.png" alt="Открытый сундук">
+    
+    <img id="chest-open" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab745d830ade7d82a7a69.png" alt="Открытый сундук" onclick="goToNextSlide()">
 
-    <div id="slot-0" class="slot">
-        <button class="btn-invisible btn-up" onclick="changeDigit(0, 1)"></button>
-        <div class="digit" id="num-0">0</div>
-        <button class="btn-invisible btn-down" onclick="changeDigit(0, -1)"></button>
-    </div>
-    
-    <div id="slot-1" class="slot">
-        <button class="btn-invisible btn-up" onclick="changeDigit(1, 1)"></button>
-        <div class="digit" id="num-1">0</div>
-        <button class="btn-invisible btn-down" onclick="changeDigit(1, -1)"></button>
-    </div>
-    
-    <div id="slot-2" class="slot">
-        <button class="btn-invisible btn-up" onclick="changeDigit(2, 1)"></button>
-        <div class="digit" id="num-2">0</div>
-        <button class="btn-invisible btn-down" onclick="changeDigit(2, -1)"></button>
-    </div>
-    
-    <div id="slot-3" class="slot">
-        <button class="btn-invisible btn-up" onclick="changeDigit(3, 1)"></button>
-        <div class="digit" id="num-3">0</div>
-        <button class="btn-invisible btn-down" onclick="changeDigit(3, -1)"></button>
-    </div>
+    <div id="slot-0" class="slot"><button class="btn-invisible btn-up" onclick="changeDigit(0, 1)"></button><div class="digit" id="num-0">0</div><button class="btn-invisible btn-down" onclick="changeDigit(0, -1)"></button></div>
+    <div id="slot-1" class="slot"><button class="btn-invisible btn-up" onclick="changeDigit(1, 1)"></button><div class="digit" id="num-1">0</div><button class="btn-invisible btn-down" onclick="changeDigit(1, -1)"></button></div>
+    <div id="slot-2" class="slot"><button class="btn-invisible btn-up" onclick="changeDigit(2, 1)"></button><div class="digit" id="num-2">0</div><button class="btn-invisible btn-down" onclick="changeDigit(2, -1)"></button></div>
+    <div id="slot-3" class="slot"><button class="btn-invisible btn-up" onclick="changeDigit(3, 1)"></button><div class="digit" id="num-3">0</div><button class="btn-invisible btn-down" onclick="changeDigit(3, -1)"></button></div>
 </div>
 
 <script>
+    /* ==========================================
+       ВСТАВЬ ССЫЛКУ НА СЛЕДУЮЩИЙ СЛАЙД НИЖЕ 
+       Обязательно оставь кавычки!
+       ========================================== */
+    const nextSlideURL = "СЮДА_ВСТАВИТЬ_ССЫЛКУ";
+
     let code = [0, 0, 0, 0];
     const targetCode = [2, 4, 6, 7]; 
 
     function changeDigit(index, direction) {
         code[index] += direction;
-
         if (code[index] > 9) code[index] = 0;
         if (code[index] < 0) code[index] = 9;
 
         const digitElement = document.getElementById('num-' + index);
         digitElement.innerText = code[index];
         
-        // Легкая анимация нажатия самой цифры
         digitElement.style.transform = 'scale(0.85)';
         setTimeout(() => digitElement.style.transform = 'scale(1)', 100);
 
@@ -162,15 +108,22 @@
 
     function checkCode() {
         if (code.join('') === targetCode.join('')) {
-            // Прячем картинку закрытого сундука и все четыре слота
             document.getElementById('chest-closed').style.display = 'none';
             document.getElementById('slot-0').style.display = 'none';
             document.getElementById('slot-1').style.display = 'none';
             document.getElementById('slot-2').style.display = 'none';
             document.getElementById('slot-3').style.display = 'none';
             
-            // Показываем открытый сундук
             document.getElementById('chest-open').style.display = 'block';
+        }
+    }
+
+    function goToNextSlide() {
+        if(nextSlideURL !== "СЮДА_ВСТАВИТЬ_ССЫЛКУ") {
+            // Открывает ссылку в том же окне поверх фрейма
+            window.top.location.href = nextSlideURL; 
+        } else {
+            alert("Ссылка на следующий слайд еще не добавлена в код!");
         }
     }
 </script>
