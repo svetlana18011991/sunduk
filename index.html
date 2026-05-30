@@ -3,151 +3,132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Сундук с невидимыми кнопками</title>
+<title>Калибровка сундука</title>
 <style>
     body {
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: transparent;
-        overflow: hidden;
+        margin: 0; display: flex; justify-content: center; align-items: center;
+        height: 100vh; background-color: #f0f0f0; overflow: hidden; font-family: Arial, sans-serif;
     }
-
-    #game-container {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-        max-width: 800px;
-        container-type: inline-size; 
-    }
-
-    .chest-img {
-        display: block;
-        width: 100%;
-        height: auto;
-    }
-
-    #chest-open {
-        display: none;
-    }
-
-    /* Зона замка теперь с 3D-перспективой */
+    #game-container { position: relative; display: inline-block; width: 100%; max-width: 800px; container-type: inline-size; }
+    .chest-img { display: block; width: 100%; height: auto; }
+    
     #lock-zone {
         position: absolute;
-        top: 54.5%;  /* Подняли выше к пазам */
-        left: 27.5%; /* Легкий сдвиг вправо */
-        width: 44%;  
         height: 14%;
-        
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        /* Магия перспективы: наклон по осям X, Y и Z, чтобы лечь по форме сундука */
-        transform: perspective(600px) rotateY(16deg) rotateX(2deg) rotateZ(-1.5deg);
+        display: flex; justify-content: space-between; align-items: center;
+        border: 2px dashed red; /* Временная красная рамка, чтобы видеть границы */
     }
-
-    .slot {
-        position: relative;
-        width: 20%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
+    .slot { position: relative; width: 20%; height: 100%; display: flex; justify-content: center; align-items: center; }
     .digit {
-        background-color: #1a0f08; /* Почти черный, имитирует глубину паза */
-        color: #dcb881; /* Цвет старого золота/бронзы */
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        font-size: 4.5cqw;
-        text-align: center;
-        width: 70%; /* Сузили квадратики */
-        padding: 12% 0;
-        border-radius: 4px;
-        /* Внутренняя тень создает эффект объема внутри замка */
-        box-shadow: inset 0px 3px 8px rgba(0,0,0,0.9), 0px 1px 1px rgba(255,255,255,0.1); 
-        user-select: none;
-        transition: transform 0.1s;
+        background-color: rgba(26, 15, 8, 0.8); /* Полупрозрачный фон, чтобы видеть оригинальные нули */
+        color: #dcb881; font-family: 'Courier New', monospace; font-weight: bold; font-size: 4.5cqw;
+        text-align: center; width: 70%; padding: 12% 0; border-radius: 4px;
     }
 
-    /* Зоны для клика (стрелочки) */
-    .btn-invisible {
-        position: absolute;
-        width: 100%;
-        height: 60%; 
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-        outline: none;
+    /* Панель управления */
+    #editor-panel {
+        position: fixed; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.85); color: white;
+        padding: 15px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
-
-    .btn-up { top: -60%; }
-    .btn-down { bottom: -60%; }
-
+    .control-group { margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; width: 280px;}
+    .control-group span { font-size: 14px; width: 100px; }
+    button { background: #444; color: white; border: none; padding: 5px 12px; cursor: pointer; border-radius: 3px; font-weight: bold; }
+    button:hover { background: #666; }
+    button:active { background: #d4a359; }
+    #result { margin-top: 15px; color: #d4a359; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<div id="game-container">
-    <img id="chest-closed" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab73c52dc8f7cac349daf.png" alt="Закрытый сундук">
-    <img id="chest-open" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab745d830ade7d82a7a69.png" alt="Открытый сундук">
+<div id="editor-panel">
+    <h3>Калибровка</h3>
+    <div class="control-group">
+        <span>Вверх / Вниз (Y)</span>
+        <div><button onclick="update('posY', -0.5)">▲</button> <button onclick="update('posY', 0.5)">▼</button></div>
+    </div>
+    <div class="control-group">
+        <span>Влево / Вправо (X)</span>
+        <div><button onclick="update('posX', -0.5)">◀</button> <button onclick="update('posX', 0.5)">▶</button></div>
+    </div>
+    <div class="control-group">
+        <span>Ширина блока</span>
+        <div><button onclick="update('width', -0.5)">-</button> <button onclick="update('width', 0.5)">+</button></div>
+    </div>
+    <hr style="border-color:#444;">
+    <div class="control-group">
+        <span>Наклон Вбок (Y)</span>
+        <div><button onclick="update('rotY', -1)">-</button> <button onclick="update('rotY', 1)">+</button></div>
+    </div>
+    <div class="control-group">
+        <span>Наклон Вниз (X)</span>
+        <div><button onclick="update('rotX', -1)">-</button> <button onclick="update('rotX', 1)">+</button></div>
+    </div>
+    <div class="control-group">
+        <span>Вращение (Z)</span>
+        <div><button onclick="update('rotZ', -0.5)">-</button> <button onclick="update('rotZ', 0.5)">+</button></div>
+    </div>
+    <div id="result">Жми ENTER, когда закончишь</div>
+</div>
 
+<div id="game-container">
+    <img id="chest-closed" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab73c52dc8f7cac349daf.png">
     <div id="lock-zone">
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(0, 1)"></button>
-            <div class="digit" id="num-0">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(0, -1)"></button>
-        </div>
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(1, 1)"></button>
-            <div class="digit" id="num-1">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(1, -1)"></button>
-        </div>
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(2, 1)"></button>
-            <div class="digit" id="num-2">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(2, -1)"></button>
-        </div>
-        <div class="slot">
-            <button class="btn-invisible btn-up" onclick="changeDigit(3, 1)"></button>
-            <div class="digit" id="num-3">0</div>
-            <button class="btn-invisible btn-down" onclick="changeDigit(3, -1)"></button>
-        </div>
+        <div class="slot"><div class="digit">0</div></div>
+        <div class="slot"><div class="digit">0</div></div>
+        <div class="slot"><div class="digit">0</div></div>
+        <div class="slot"><div class="digit">0</div></div>
     </div>
 </div>
 
 <script>
-    let code = [0, 0, 0, 0];
-    const targetCode = [2, 4, 6, 7]; 
+    // Стартовые значения
+    let state = {
+        posY: 54.5,
+        posX: 27.5,
+        width: 44.0,
+        rotY: 16.0,
+        rotX: 2.0,
+        rotZ: -1.5
+    };
 
-    function changeDigit(index, direction) {
-        code[index] += direction;
+    const lockZone = document.getElementById('lock-zone');
 
-        if (code[index] > 9) code[index] = 0;
-        if (code[index] < 0) code[index] = 9;
-
-        const digitElement = document.getElementById('num-' + index);
-        digitElement.innerText = code[index];
-        
-        // Визуальный отклик самой цифры при клике
-        digitElement.style.transform = 'scale(0.85)';
-        setTimeout(() => digitElement.style.transform = 'scale(1)', 100);
-
-        checkCode();
+    function renderTransform() {
+        lockZone.style.top = state.posY + '%';
+        lockZone.style.left = state.posX + '%';
+        lockZone.style.width = state.width + '%';
+        lockZone.style.transform = `perspective(600px) rotateY(${state.rotY}deg) rotateX(${state.rotX}deg) rotateZ(${state.rotZ}deg)`;
     }
 
-    function checkCode() {
-        if (code.join('') === targetCode.join('')) {
-            document.getElementById('chest-closed').style.display = 'none';
-            document.getElementById('lock-zone').style.display = 'none';
-            document.getElementById('chest-open').style.display = 'block';
+    function update(prop, delta) {
+        state[prop] += delta;
+        renderTransform();
+    }
+
+    // Обработка нажатия Enter
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            const finalCSS = `
+    /* Скопируй этот блок и замени им старый #lock-zone в финальном коде */
+    #lock-zone {
+        position: absolute;
+        top: ${state.posY.toFixed(1)}%;
+        left: ${state.posX.toFixed(1)}%;
+        width: ${state.width.toFixed(1)}%;
+        height: 14%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transform: perspective(600px) rotateY(${state.rotY.toFixed(1)}deg) rotateX(${state.rotX.toFixed(1)}deg) rotateZ(${state.rotZ.toFixed(1)}deg);
+    }`;
+            // Выводим код на экран в виде всплывающего окна
+            alert("Готово! Скопируй эти значения:\n" + finalCSS);
+            console.log(finalCSS); // Дублируем в консоль на всякий случай
         }
-    }
+    });
+
+    // Первичная отрисовка
+    renderTransform();
 </script>
 
 </body>
