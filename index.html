@@ -9,7 +9,7 @@
     #game-container { position: relative; display: inline-block; max-width: 100vw; max-height: 100vh; }
     .chest-img { display: block; max-width: 100vw; max-height: 100vh; width: auto; height: auto; object-fit: contain; }
     
-    /* Анимация золотого пульсирующего свечения */
+    /* Анимация золотого пульсирующего свечения для открытого сундука */
     @keyframes goldPulse {
         0% { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4)); transform: scale(1); }
         50% { filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)) drop-shadow(0 0 80px rgba(255, 140, 0, 0.8)); transform: scale(1.02); }
@@ -19,15 +19,23 @@
     #chest-open { 
         display: none; 
         cursor: pointer; 
-        /* Подключаем анимацию свечения */
         animation: goldPulse 2.5s infinite ease-in-out;
     }
     
-    /* Усиливаем свечение, когда ребенок наводит мышку */
     #chest-open:hover { 
         filter: drop-shadow(0 0 60px rgba(255, 255, 0, 1)) drop-shadow(0 0 100px rgba(255, 165, 0, 1));
         transform: scale(1.05);
         transition: all 0.2s;
+    }
+
+    /* Настройки для финальной картинки (плавное появление) */
+    #scroll-img {
+        display: none;
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
     }
 
     #slot-0 { position: absolute; top: 52.0%; left: 20.5%; width: 7.0%; height: 14%; transform: perspective(600px) rotateY(16.0deg) rotateX(-2.0deg) rotateZ(0.5deg); }
@@ -51,8 +59,11 @@
 <div id="game-container">
     <img id="chest-closed" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1abdc8dae92dd5672057bd.png" alt="Закрытый сундук">
     
-    <!-- По клику открываем ссылку на картинку -->
+    <!-- Открытый сундук (при клике запускает функцию openScroll) -->
     <img id="chest-open" class="chest-img" src="https://ai-image.genially.com/6633c59920efa00014da5839/6a1a9567e6f7f2fdd097c408/6a1ab745d830ade7d82a7a69.png" alt="Открытый сундук" onclick="openScroll()">
+
+    <!-- Финальная картинка послания (сначала скрыта) -->
+    <img id="scroll-img" class="chest-img" src="https://img.genially.com/6373b27423554f0011e5249f/6c4c494b-4e8c-41c5-848f-fbc3a3c86982.png" alt="Секретное послание">
 
     <div id="slot-0" class="slot"><button class="btn-invisible btn-up" onclick="changeDigit(0, 1)"></button><div class="digit" id="num-0">0</div><button class="btn-invisible btn-down" onclick="changeDigit(0, -1)"></button></div>
     <div id="slot-1" class="slot"><button class="btn-invisible btn-up" onclick="changeDigit(1, 1)"></button><div class="digit" id="num-1">0</div><button class="btn-invisible btn-down" onclick="changeDigit(1, -1)"></button></div>
@@ -64,8 +75,6 @@
     let code = [0, 0, 0, 0];
     const targetCode = [2, 4, 6, 7]; 
 
-    const scrollImageURL = "https://img.genially.com/6373b27423554f0011e5249f/6c4c494b-4e8c-41c5-848f-fbc3a3c86982.png";
-    
     // Загружаем приятный звук открытия (волшебный перезвон)
     const openSound = new Audio("https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg");
     openSound.volume = 0.6; // Громкость от 0.0 до 1.0
@@ -99,8 +108,10 @@
         }
     }
 
+    // Функция показывает картинку прямо внутри фрейма
     function openScroll() {
-        window.open(scrollImageURL, '_blank');
+        document.getElementById('chest-open').style.display = 'none';
+        document.getElementById('scroll-img').style.display = 'block';
     }
 </script>
 
